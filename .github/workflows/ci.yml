@@ -29,8 +29,3 @@ jobs:
 
       - name: "Test the contracts and generate the coverage report"
         run: "npx hardhat test"
-
-      - name: "Add test summary"
-        run: |
-          echo "## Test results" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Passed" >> $GITHUB_STEP_SUMMARY
