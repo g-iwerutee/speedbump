@@ -62,11 +62,15 @@ describe("PingPong", function () {
     });
 
     it("should not enforce an average rate", async function () {
+        // get 'current' timestamp
+        await ethers.provider.send("evm_mine", []);
+        const block = await ethers.provider.send("eth_getBlockByNumber", ["latest", false]);
+
         // we want to arrive in the final 10% of the current window
-        const secondsToForward = WINDOW - ((Date.now() / 1000) % WINDOW) + (WINDOW * 0.9);
+        const secondsToForward = WINDOW - (block.timestamp % WINDOW) + (WINDOW * 0.8);
 
         // then wait until the next window has started
-        const secondsToWait = (WINDOW * 0.2);
+        const secondsToWait = (WINDOW * 0.4);
 
         await ethers.provider.send("evm_increaseTime", [Math.round(secondsToForward)]);
 
@@ -81,7 +85,7 @@ describe("PingPong", function () {
         await ethers.provider.send("evm_increaseTime", [Math.round(secondsToWait)]);
 
         // use up our rate limit again
-        // at this point, we've hit 2x the rate limit in (0.3 * WINDOW) continuous time
+        // at this point, we've hit 2x the rate limit in (0.4 * WINDOW) continuous time
         // which is a limitation of this rate limiting method
         for (let i = 0; i < MAX_HITS; i++) {
             await (await pingPong.ping()).wait();
