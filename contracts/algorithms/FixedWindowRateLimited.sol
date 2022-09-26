@@ -35,4 +35,10 @@ contract FixedWindowRateLimited is RateLimited {
             return true;
         }
     }
+
+    modifier isRateLimited() override {
+        require(doesNotExceedRateLimit(), "Rate limit exceeded");
+        hitRateLimit();
+        _;
+    }
 }
