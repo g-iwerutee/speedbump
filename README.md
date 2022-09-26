@@ -1,10 +1,14 @@
 # speedbump
 
-## Rate limiter types:
+Implements global rate limiters for Solidity contracts.
 
-- Fixed window
-- Sliding log
-- Sliding window
+## TODO:
+
+- [x] Global rate limiters
+    - [x] `FixedWindow`
+    - [x] `SlidingWindow`
+- [ ] Scoped rate limiters (e.g. by address / account key)
+- [ ] Quantity-based rate limiters (e.g. quantity/time limits)
 
 ## Local development:
 

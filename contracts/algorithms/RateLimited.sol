@@ -6,9 +6,5 @@ abstract contract RateLimited {
 
     function doesNotExceedRateLimit() public view virtual returns (bool);
 
-    modifier isRateLimited() {
-        require(doesNotExceedRateLimit(), "Rate limit exceeded");
-        hitRateLimit();
-        _;
-    }
+    modifier isRateLimited() virtual;
 }
