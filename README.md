@@ -1,6 +1,6 @@
 # speedbump
 
-## Rate limiter types:
+## Rate limiter types:
 
 - Fixed window
 - Sliding log
