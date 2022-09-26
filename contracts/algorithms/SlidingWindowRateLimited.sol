@@ -59,9 +59,9 @@ contract SlidingWindowRateLimited is RateLimited {
                 uint256 propThroughWindow = (1_000 *
                     (block.timestamp - windowStart)) / windowLengthSeconds;
 
-                uint256 avgCount = (propThroughWindow *
+                uint256 avgCount = ((propThroughWindow *
                     buffer[0].hitsRecorded) +
-                    ((1_000 - propThroughWindow) * buffer[1].hitsRecorded) /
+                    ((1_000 - propThroughWindow) * buffer[1].hitsRecorded)) /
                     1_000;
 
                 return avgCount <= maxHitsPerWindow;
@@ -77,9 +77,9 @@ contract SlidingWindowRateLimited is RateLimited {
                 uint256 propThroughWindow = (1_000 *
                     (block.timestamp - windowStart)) / windowLengthSeconds;
 
-                uint256 avgCount = (propThroughWindow *
+                uint256 avgCount = ((propThroughWindow *
                     buffer[0].hitsRecorded) +
-                    ((1_000 - propThroughWindow) * buffer[1].hitsRecorded) /
+                    ((1_000 - propThroughWindow) * buffer[1].hitsRecorded)) /
                     1_000;
 
                 return avgCount <= maxHitsPerWindow;
