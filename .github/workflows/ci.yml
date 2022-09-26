@@ -1,0 +1,31 @@
+name: "CI"
+
+on:
+  pull_request:
+    branches:
+      - "main"
+  push:
+    branches:
+      - "main"
+
+jobs:
+  ci:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Check out the repo"
+        uses: "actions/checkout@v3"
+
+      - name: "Install Node.js"
+        uses: "actions/setup-node@v3"
+        with:
+          cache: "npm"
+          node-version: "16"
+
+      - name: "Install the dependencies"
+        run: "npm install"
+
+      - name: "Compile the contracts and generate the TypeChain bindings"
+        run: "npx hardhat typechain"
+
+      - name: "Test the contracts and generate the coverage report"
+        run: "npx hardhat test"
