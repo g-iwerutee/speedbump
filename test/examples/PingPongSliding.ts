@@ -1,24 +1,24 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { PingPong, PingPong__factory } from "../../typechain-types";
+import { PingPongSliding, PingPongSliding__factory } from "../../typechain-types";
 
 const ONE_HOUR = 60 * 60;
 const WINDOW = 60;
 const MAX_HITS = 10;
 
-describe("PingPong", function () {
+describe("PingPongSliding", function () {
     let owner: SignerWithAddress;
     let caller: SignerWithAddress;
-    let factory: PingPong__factory;
-    let pingPong: PingPong;
+    let factory: PingPongSliding__factory;
+    let pingPong: PingPongSliding;
 
     before(async function () {
         const [_owner, _caller] = await ethers.getSigners();
         owner = _owner;
         caller = _caller;
 
-        factory = await ethers.getContractFactory("PingPong");
+        factory = await ethers.getContractFactory("PingPongSliding");
     });
 
     beforeEach(async function () {
@@ -68,7 +68,7 @@ describe("PingPong", function () {
 
     });
 
-    it("should not enforce an average rate", async function () {
+    it("should enforce an average rate", async function () {
         // get 'current' timestamp
         await ethers.provider.send("evm_mine", []);
         const block = await ethers.provider.send("eth_getBlockByNumber", ["latest", false]);
@@ -88,15 +88,15 @@ describe("PingPong", function () {
         
         // mine a block so that block.timestamp is increased
         await ethers.provider.send("evm_mine", []);
+
         // wait until the next window has begun
         await ethers.provider.send("evm_increaseTime", [Math.round(secondsToWait)]);
 
-        // use up our rate limit again
-        // at this point, we've hit 2x the rate limit in (0.4 * WINDOW) continuous time
-        // which is a limitation of this rate limiting method
-        for (let i = 0; i < MAX_HITS; i++) {
-            await (await pingPong.ping()).wait();
-        }
+        // get away with one extra request
+        await (await pingPong.ping()).wait();
+
+        // then bump into the average rate limit
+        expect(await pingPong.ping()).to.be.revertedWith("Rate limit exceeded");
 
     });
 });
