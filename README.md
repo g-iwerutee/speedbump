@@ -2,7 +2,7 @@
 
 Implements global rate limiters for Solidity contracts.
 
-## TODO:
+## TODO:
 
 - [x] Global rate limiters
     - [x] `FixedWindow`
