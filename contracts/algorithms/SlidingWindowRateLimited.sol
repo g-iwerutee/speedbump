@@ -23,7 +23,8 @@ contract SlidingWindowRateLimited is RateLimited {
         maxHitsPerWindow = _maxHitsPerWindow;
     }
 
-    function updateBuffer() private {
+    // only public for testing
+    function updateBuffer() public {
         currentWindowStart = block.timestamp / windowLengthSeconds;
 
         if (currentWindowStart > buffer[0].discreteWindowIndex) {
@@ -45,6 +46,46 @@ contract SlidingWindowRateLimited is RateLimited {
     function hitRateLimit() public override {
         // we know buffer has been shuffled by this point
         buffer[0].hitsRecorded++;
+    }
+
+    function getAvgCount() public view returns (uint256) {
+        if (expired) {
+            if (buffer[1].discreteWindowIndex < currentWindowStart - 1) {
+                // twa(count(N+1)=0, count(N)=0)
+                return 0;
+            } else {
+                // twa(count(N+1)=0, count(N))
+                uint256 windowStart = (block.timestamp / windowLengthSeconds) *
+                    windowLengthSeconds;
+                uint256 propThroughWindow = (1_000 *
+                    (block.timestamp - windowStart)) / windowLengthSeconds;
+
+                uint256 avgCount = ((propThroughWindow *
+                    buffer[0].hitsRecorded) +
+                    ((1_000 - propThroughWindow) * buffer[1].hitsRecorded)) /
+                    1_000;
+
+                return avgCount;
+            }
+        } else {
+            if (buffer[1].discreteWindowIndex < currentWindowStart - 1) {
+                // twa(count(N), count(N-1)=0)
+                return buffer[0].hitsRecorded;
+            } else {
+                // twa(count(N), count(N-1))
+                uint256 windowStart = (block.timestamp / windowLengthSeconds) *
+                    windowLengthSeconds;
+                uint256 propThroughWindow = (1_000 *
+                    (block.timestamp - windowStart)) / windowLengthSeconds;
+
+                uint256 avgCount = ((propThroughWindow *
+                    buffer[0].hitsRecorded) +
+                    ((1_000 - propThroughWindow) * buffer[1].hitsRecorded)) /
+                    1_000;
+
+                return avgCount;
+            }
+        }
     }
 
     function doesNotExceedRateLimit() public view override returns (bool) {

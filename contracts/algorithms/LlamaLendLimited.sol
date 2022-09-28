@@ -23,8 +23,9 @@ contract LlamaLendLimited is RateLimited {
         hitRateLimit();
         _;
     }
-
-    function updateDailyBorrows() private {
+    
+    // only making this public for testing purposes
+    function updateDailyBorrows() public {
         uint elapsed = block.timestamp - lastUpdateDailyBorrows;
 
         currentDailyBorrows = (currentDailyBorrows -
