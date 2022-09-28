@@ -3,9 +3,9 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { PingPongSliding, PingPongSliding__factory } from "../../typechain-types";
 
-const ONE_HOUR = 60 * 60;
-const WINDOW = 60;
-const MAX_HITS = 10;
+const ONE_DAY = 24 * 60 * 60;
+const WINDOW = 24 * 60 * 60;
+const MAX_HITS = 100;
 
 describe("PingPongSliding", function () {
     let owner: SignerWithAddress;
@@ -22,7 +22,7 @@ describe("PingPongSliding", function () {
     });
 
     beforeEach(async function () {
-        await ethers.provider.send("evm_increaseTime", [ONE_HOUR]);
+        await ethers.provider.send("evm_increaseTime", [ONE_DAY]);
         await ethers.provider.send("evm_mine", []);
 
         pingPong = await factory.deploy();
@@ -60,7 +60,7 @@ describe("PingPongSliding", function () {
         
         expect(await pingPong.ping()).to.be.revertedWith("Rate limit exceeded");
 
-        await ethers.provider.send("evm_increaseTime", [ONE_HOUR]);
+        await ethers.provider.send("evm_increaseTime", [ONE_DAY]);
 
         for (let i = 0; i < MAX_HITS; i++) {
             await (await pingPong.ping()).wait();
@@ -98,5 +98,34 @@ describe("PingPongSliding", function () {
         // then bump into the average rate limit
         expect(await pingPong.ping()).to.be.revertedWith("Rate limit exceeded");
 
+    });
+
+    it("see how many we can borrow greedily in 24h", async function () {
+        let totalPingsIn24h = 0;
+
+        for (let i = 0; i < MAX_HITS; i++) {
+            await (await pingPong.ping()).wait();
+            totalPingsIn24h++;
+        }
+
+        for (let hour = 1; hour < 24; hour++) {
+            await ethers.provider.send("evm_mine", []);
+            await ethers.provider.send("evm_increaseTime", [60 * 60]);
+
+            await (await pingPong.updateBuffer()).wait();
+            
+            const block = await ethers.provider.send("eth_getBlockByNumber", ["latest", false]);
+
+            let availableBorrows = MAX_HITS - (await pingPong.getAvgCount());
+
+            console.log("available borrows:", new Date(block.timestamp * 1_000), availableBorrows);
+
+            for (let i = 0; i < availableBorrows; i++) {
+                await (await pingPong.ping()).wait();
+                totalPingsIn24h++;
+            }
+        }
+
+        console.log("total pings", totalPingsIn24h);
     });
 });
