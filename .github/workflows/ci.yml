@@ -12,7 +12,7 @@ jobs:
   ci:
     runs-on: "ubuntu-latest"
     steps:
-      - name: "Check out the repo"
+      - name: "Checkout"
         uses: "actions/checkout@v3"
 
       - name: "Install Node.js"
@@ -21,11 +21,14 @@ jobs:
           cache: "npm"
           node-version: "16"
 
-      - name: "Install the dependencies"
+      - name: "Install dependencies"
         run: "npm install"
 
-      - name: "Compile the contracts and generate the TypeChain bindings"
+      - name: "Compile and generate Typechain bindings"
         run: "npx hardhat typechain"
 
-      - name: "Test the contracts and generate the coverage report"
+      - name: "Run tests"
         run: "npx hardhat test"
+
+      - name: "Run gas reports"
+        run: "REPORT_GAS=true npx hardhat tests"
